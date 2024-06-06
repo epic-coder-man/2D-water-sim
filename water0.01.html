@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      canvas {
+        border: 1px solid black;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="waterCanvas" width="600" height="400"></canvas>
+
+    <script>
+      const canvas = document.getElementById("waterCanvas");
+      const ctx = canvas.getContext("2d");
+
+      const numParticles = 200;
+      const particles = [];
+
+      for (let i = 0; i < numParticles; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          velocityX: 0,
+          velocityY: 0,
+        });
+      }
+
+      const groundY = canvas.height - 20; // The ground position
+
+      function update() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        particles.forEach((particle) => {
+          particle.velocityY += 0.2; // Apply gravity
+
+          // Collide with the ground
+          if (particle.y >= groundY) {
+            particle.y = groundY;
+            particle.velocityY *= -0.8; // Bounce off the ground
+          }
+
+          // Collide with other particles (very basic collision detection)
+          particles.forEach((otherParticle) => {
+            if (particle !== otherParticle) {
+              const dx = otherParticle.x - particle.x;
+              const dy = otherParticle.y - particle.y;
+              const distance = Math.sqrt(dx * dx + dy * dy);
+
+              if (distance < 10) {
+                const angle = Math.atan2(dy, dx);
+                const overlap = 10 - distance;
+
+                particle.x -= overlap / 2 * Math.cos(angle);
+                particle.y -= overlap / 2 * Math.sin(angle);
+                otherParticle.x += overlap / 2 * Math.cos(angle);
+                otherParticle.y += overlap / 2 * Math.sin(angle);
+              }
+            }
+          });
+
+          particle.x += particle.velocityX;
+          particle.y += particle.velocityY;
+
+          // Keep particles within canvas boundaries
+          particle.x = Math.min(canvas.width, Math.max(0, particle.x));
+
+          // Draw the particles
+          ctx.fillStyle = "blue";
+          ctx.fillRect(particle.x, particle.y, 2, 2);
+        });
+
+        requestAnimationFrame(update);
+      }
+
+      update();
+    </script>
+  </body>
+</html>
